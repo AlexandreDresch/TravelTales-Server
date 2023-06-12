@@ -26,3 +26,10 @@ export interface CreateUserParams {
   email: string;
   password: string;
 }
+
+export interface CreatePostParams {
+  files: string[];
+  description?: string;
+  country: string;
+  userId: number;
+}
