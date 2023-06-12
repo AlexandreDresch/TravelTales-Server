@@ -9,15 +9,17 @@ loadEnv();
 
 import { handleApplicationErrors } from "@/middlewares";
 
-import { usersRouter, authenticationRouter } from "@/routers";
+import { usersRouter, authenticationRouter, postsRouter } from "@/routers";
 
 const app = express();
 app
   .use(cors())
-  .use(express.json())
+  .use(express.json({ limit: "50mb"}))
+  .use(express.urlencoded({ limit: "50mb", extended: true }))
   .get("/health", (_req, res) => res.send("OK!"))
   .use("/users", usersRouter)
   .use("/auth", authenticationRouter)
+  .use("/posts", postsRouter)
   .use(handleApplicationErrors);
 
 export function init(): Promise<Express> {

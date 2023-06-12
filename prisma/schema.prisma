@@ -11,32 +11,41 @@ datasource db {
 }
 
 model User {
-  id         Int          @id @default(autoincrement())
-  username   String       @unique @db.VarChar(255)
-  email      String       @unique @db.VarChar(255)
-  password   String       @db.VarChar(255)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  Session    Session[] 
-  Posts    Posts[]
+  id        Int       @id @default(autoincrement())
+  username  String    @unique @db.VarChar(255)
+  email     String    @unique @db.VarChar(255)
+  password  String    @db.VarChar(255)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Session   Session[]
+  Posts     Posts[]
 }
 
 model Session {
   id        Int      @id @default(autoincrement())
   userId    Int?
-  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Posts {
+  id          Int          @id @default(autoincrement())
+  userId      Int          
+  User        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description String?
+  pictures    PostImages[]
+  country     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model PostImages {
   id        Int      @id @default(autoincrement())
-  userId    Int       @unique
-  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  description String
-  picture String
-  pictureName String
+  postId    Int      
+  Post      Posts?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
