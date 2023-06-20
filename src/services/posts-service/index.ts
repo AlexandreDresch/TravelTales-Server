@@ -1,8 +1,21 @@
 import { User } from "@prisma/client";
-import { notFoundError } from "@/errors";
+import { forBiddenError, notFoundError } from "@/errors";
 import postsRepository from "@/repositories/posts-repository";
-import { CreatePostParams } from "@/utils/protocols";
+import {
+  CreatePostParams,
+  DeletePostParams,
+  UpdatePostParams,
+} from "@/utils/protocols";
 import cloudinaryV2 from "@/utils/cloudinary";
+
+async function verifyPostOwnership(postId: number, userId: number) {
+  const post = await postsRepository.getPostById(postId);
+  if (!post) throw notFoundError();
+
+  if (post.id !== userId) throw forBiddenError();
+
+  return post;
+}
 
 async function getPosts() {
   const posts = await postsRepository.getPosts();
@@ -12,7 +25,23 @@ async function getPosts() {
   return posts;
 }
 
-export async function createPost({
+async function getPostById(postId: number) {
+  const post = await postsRepository.getPostById(postId);
+
+  if (!post) throw notFoundError();
+
+  return post;
+}
+
+async function getPostsByUserId(userId: number) {
+  const post = await postsRepository.getPostsByUserId(userId);
+
+  if (!post) throw notFoundError();
+
+  return post;
+}
+
+async function createPost({
   files,
   description,
   country,
@@ -50,9 +79,27 @@ export async function createPost({
   }
 }
 
+async function updatePost({ description, userId, postId }: UpdatePostParams) {
+  await verifyPostOwnership(postId, userId);
+
+  const updatedPost = await postsRepository.updatePost(postId, description);
+
+  return updatedPost;
+}
+
+async function deletePost({ postId, userId }: DeletePostParams) {
+  await verifyPostOwnership(postId, userId);
+
+  await postsRepository.deletePost(postId);
+}
+
 const postsService = {
   createPost,
   getPosts,
+  getPostById,
+  getPostsByUserId,
+  updatePost,
+  deletePost,
 };
 
 export default postsService;

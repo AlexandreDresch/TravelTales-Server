@@ -33,3 +33,14 @@ export interface CreatePostParams {
   country: string;
   userId: number;
 }
+
+export interface UpdatePostParams {
+  description: string;
+  userId: number;
+  postId: number;
+}
+
+export interface DeletePostParams {
+  userId: number;
+  postId: number;
+}
