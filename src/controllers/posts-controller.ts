@@ -16,6 +16,36 @@ export async function getPosts(
   }
 }
 
+export async function getPostById(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const {id} = req.params;
+
+  try {
+    const post = await postService.getPostById(+id);
+    return res.status(httpStatus.OK).send(post);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getPostsByUserId(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const {id} = req.params;
+
+  try {
+    const post = await postService.getPostsByUserId(+id);
+    return res.status(httpStatus.OK).send(post);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function postsPost(
   req: AuthenticatedRequest,
   res: Response,
@@ -32,6 +62,48 @@ export async function postsPost(
       userId,
     });
     return res.status(httpStatus.CREATED).send(post);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updatePost(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const { description, postId } = req.body as {
+    description: string;
+    postId: number;
+  };
+  const { userId } = req as { userId: number };
+
+  try {
+    const post = await postService.updatePost({
+      description,
+      userId,
+      postId,
+    });
+    return res.status(httpStatus.OK).send(post);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deletePost(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const { postId } = req.body as { postId: number };
+  const { userId } = req as { userId: number };
+
+  try {
+    await postService.deletePost({
+      postId,
+      userId,
+    });
+    return res.status(httpStatus.ACCEPTED);
   } catch (error) {
     next(error);
   }

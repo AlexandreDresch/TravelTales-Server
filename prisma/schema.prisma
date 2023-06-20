@@ -19,6 +19,7 @@ model User {
   updatedAt DateTime  @updatedAt
   Session   Session[]
   Posts     Posts[]
+  Comments  Comments[]
 }
 
 model Session {
@@ -37,6 +38,7 @@ model Posts {
   description String?
   pictures    PostImages[]
   country     String
+  Comments    Comments[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -46,6 +48,17 @@ model PostImages {
   postId    Int      
   Post      Posts?   @relation(fields: [postId], references: [id], onDelete: Cascade)
   url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Comments {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  post      Posts    @relation(fields: [postId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  comment   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
