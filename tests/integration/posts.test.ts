@@ -25,7 +25,7 @@ describe("GET /posts", () => {
 
     const response = await server
       .get("/posts")
-      .set("Authorization", `Bearer ${token}`);    
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toEqual(httpStatus.OK);
     console.log(response.body);
@@ -39,11 +39,155 @@ describe("GET /posts", () => {
         description: expect.any(String),
         pictures: [
           {
-            url: expect.any(String)
-          }
-        ]
+            url: expect.any(String),
+          },
+        ],
       },
     ]);
+  });
+});
+
+describe("GET /posts/:id", () => {
+  it("should respond with status 400 if no postId is given", async () => {
+    const response = await server.get("/posts/");
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  it("should respond with status 400 if invalid postId is given", async () => {
+    const response = await server.get("/posts/abc");
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  it("should respond with status 404 if post with postId does not exist", async () => {
+    const response = await server.get("/posts/999");
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  describe("when body is valid", () => {
+    it("should respond with status 200 and with post data", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const post = await createPost(user.id);
+
+      const response = await server.get(`/posts/${post.id}`);
+
+      expect(response.status).toEqual(httpStatus.OK);
+
+      expect(response.body).toEqual([
+        {
+          id: post.id,
+          User: {
+            username: expect.any(String),
+          },
+          country: expect.any(String),
+          description: expect.any(String),
+          pictures: [
+            {
+              url: expect.any(String),
+            },
+          ],
+        },
+      ]);
+    });
+  });
+});
+
+describe("GET /posts/user/:id", () => {
+  it("should respond with status 401 if no token is given", async () => {
+    const response = await server.get("/posts/user/11");
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if given token is not valid", async () => {
+    const token = faker.lorem.word();
+
+    const response = await server
+      .get("/posts/user/11")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if there is no session for given token", async () => {
+    const userWithoutSession = await createUser();
+    const token = jwt.sign(
+      { userId: userWithoutSession.id },
+      process.env.JWT_SECRET
+    );
+
+    const response = await server
+      .get("/posts/user/11")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+  it("should respond with status 400 if no user id is given", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+
+    const response = await server
+      .get("/posts/user/")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  it("should respond with status 400 if invalid userId is given", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+
+    const response = await server
+      .get("/posts/user/abc")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  it("should respond with status 404 if user with given userId does not exist", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+
+    const response = await server
+      .get("/user/999")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.NOT_FOUND);
+  });
+
+  describe("when body is valid", () => {
+    it("should respond with status 200 and with post data", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      await createPost(user.id);
+
+      const response = await server
+        .get(`/posts/user/${user.id}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toEqual(httpStatus.OK);
+
+      expect(response.body).toEqual([
+        {
+          id: expect.any(Number),
+          User: {
+            username: expect.any(String),
+          },
+          country: expect.any(String),
+          description: expect.any(String),
+          pictures: [
+            {
+              url: expect.any(String),
+            },
+          ],
+        },
+      ]);
+    });
   });
 });
 
@@ -149,6 +293,185 @@ describe("POST /posts", () => {
           id: response.body.id,
         })
       );
+    });
+  });
+});
+
+describe("PUT /posts", () => {
+  it("should respond with status 401 if no token is given", async () => {
+    const response = await server.put("/posts");
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if given token is not valid", async () => {
+    const token = faker.lorem.word();
+
+    const response = await server
+      .put("/posts")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if there is no session for given token", async () => {
+    const userWithoutSession = await createUser();
+    const token = jwt.sign(
+      { userId: userWithoutSession.id },
+      process.env.JWT_SECRET
+    );
+
+    const response = await server
+      .put("/posts")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 400 when body is not given", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+
+    const response = await server
+      .put("/posts")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  it("should respond with status 400 when body is not valid", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+
+    const invalidBody = { [faker.lorem.word()]: faker.lorem.word() };
+
+    const response = await server
+      .put("/posts")
+      .set("Authorization", `Bearer ${token}`)
+      .send(invalidBody);
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  describe("when body is valid", () => {
+    const generateValidBody = () => ({
+      description: faker.lorem.sentence(),
+    });
+
+    it("should respond with status 200 and update post", async () => {
+      const body = generateValidBody();
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const response = await server
+        .put("/posts")
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+
+      expect(response.status).toBe(httpStatus.NO_CONTENT);
+    });
+
+    it("should update post on db", async () => {
+      const body = generateValidBody();
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const newPost = await createPost(user.id);
+
+      const response = await server
+        .put(`/posts/${newPost.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+
+      const post = await prisma.posts.findUnique({
+        where: { id: response.body.id },
+      });
+      expect(post).toEqual(
+        expect.objectContaining({
+          description: response.body.description,
+        })
+      );
+    });
+  });
+});
+
+describe("DELETE /posts", () => {
+  it("should respond with status 401 if no token is given", async () => {
+    const response = await server.delete("/posts");
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if given token is not valid", async () => {
+    const token = faker.lorem.word();
+
+    const response = await server
+      .delete("/posts")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if there is no session for given token", async () => {
+    const userWithoutSession = await createUser();
+    const token = jwt.sign(
+      { userId: userWithoutSession.id },
+      process.env.JWT_SECRET
+    );
+
+    const response = await server
+      .delete("/posts")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 400 when body is not given", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+
+    const response = await server
+      .delete("/posts")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  it("should respond with status 400 when body is not valid", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+
+    const invalidBody = { [faker.lorem.word()]: faker.lorem.word() };
+
+    const response = await server
+      .delete("/posts")
+      .set("Authorization", `Bearer ${token}`)
+      .send(invalidBody);
+
+    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+  });
+
+  describe("when body is valid", () => {
+    it("should respond with status 204 and delete post", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const newPost = await createPost(user.id);
+
+      const body = {
+        postId: newPost.id,
+      };
+
+      const response = await server
+        .delete("/posts")
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+
+      const post = await prisma.posts.findUnique({
+        where: { id: newPost.id },
+      });
+
+      expect(response.status).toBe(httpStatus.NO_CONTENT);
+      expect(post).toBeNull();
     });
   });
 });
