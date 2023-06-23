@@ -80,7 +80,12 @@ async function getPostById(postId: number) {
       description: true,
       country: true,
       pictures: true,
-      User: { select: { username: true } },
+      User: {
+        select: {
+          username: true,
+          id: true,
+        },
+      },
       Comments: {
         select: {
           comment: true,
@@ -109,6 +114,12 @@ async function getPostsByUserId(userId: number) {
           id: true,
         },
       },
+      Comments: {
+        select: {
+          comment: true,
+          user: { select: { username: true } }
+        }
+      }
     },
   });
 }
@@ -121,7 +132,7 @@ async function updatePost(postId: number, description: string) {
 }
 
 async function deletePost(postId: number) {
-  await prisma.posts.delete({
+  return await prisma.posts.delete({
     where: {
       id: postId,
     },
