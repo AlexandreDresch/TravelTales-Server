@@ -1,16 +1,31 @@
 import { Router } from "express";
 
-import { createPostSchema, deletePostSchema, updatePostSchema } from "@/schemas";
-import { validateBody, authenticateToken } from "@/middlewares";
-import { postsPost, getPosts, updatePost, deletePost, getPostById, getPostsByUserId } from "@/controllers";
+import {
+  createPostSchema,
+  deletePostSchema,
+  getPostByIdSchema,
+  getPostByUserIdSchema,
+  updatePostSchema,
+} from "@/schemas";
+
+import { validateBody, authenticateToken, validateParams } from "@/middlewares";
+
+import {
+  postsPost,
+  getPosts,
+  updatePost,
+  deletePost,
+  getPostById,
+  getPostsByUserId,
+} from "@/controllers";
 
 const postsRouter = Router();
 
 postsRouter
   .get("/", getPosts)
-  .get("/:id", getPostById)
+  .get("/:postId", validateParams(getPostByIdSchema), getPostById)
   .all("*", authenticateToken)
-  .get("/user/:id", getPostsByUserId)
+  .get("/user/:userId", validateParams(getPostByUserIdSchema), getPostsByUserId)
   .post("/", validateBody(createPostSchema), postsPost)
   .put("/", validateBody(updatePostSchema), updatePost)
   .delete("/", validateBody(deletePostSchema), deletePost);

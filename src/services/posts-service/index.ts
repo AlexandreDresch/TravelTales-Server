@@ -12,7 +12,7 @@ async function verifyPostOwnership(postId: number, userId: number) {
   const post = await postsRepository.getPostById(postId);
   if (!post) throw notFoundError();
 
-  if (post.id !== userId) throw forBiddenError();
+  if (post.User.id !== userId) throw forBiddenError();
 
   return post;
 }
@@ -79,7 +79,14 @@ async function createPost({
   }
 }
 
-async function updatePost({ description, userId, postId }: UpdatePostParams) {
+async function updatePost({
+  description,
+  userId,
+  postId,
+}: UpdatePostParams) {
+  const post = await postsRepository.getPostById(postId);
+  if (!post) throw notFoundError();
+
   await verifyPostOwnership(postId, userId);
 
   const updatedPost = await postsRepository.updatePost(postId, description);
@@ -87,7 +94,10 @@ async function updatePost({ description, userId, postId }: UpdatePostParams) {
   return updatedPost;
 }
 
-async function deletePost({ postId, userId }: DeletePostParams) {
+async function deletePost({ postId, userId }: DeletePostParams): Promise<void> {
+  const post = await postsRepository.getPostById(postId);
+  if (!post) throw notFoundError();
+
   await verifyPostOwnership(postId, userId);
 
   await postsRepository.deletePost(postId);

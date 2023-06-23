@@ -21,10 +21,10 @@ export async function getPostById(
   res: Response,
   next: NextFunction
 ) {
-  const {id} = req.params;
+  const { postId } = req.params;
 
   try {
-    const post = await postService.getPostById(+id);
+    const post = await postService.getPostById(+postId);
     return res.status(httpStatus.OK).send(post);
   } catch (error) {
     next(error);
@@ -36,10 +36,10 @@ export async function getPostsByUserId(
   res: Response,
   next: NextFunction
 ) {
-  const {id} = req.params;
+  const { userId } = req.params;
 
   try {
-    const post = await postService.getPostsByUserId(+id);
+    const post = await postService.getPostsByUserId(+userId);
     return res.status(httpStatus.OK).send(post);
   } catch (error) {
     next(error);
@@ -76,6 +76,7 @@ export async function updatePost(
     description: string;
     postId: number;
   };
+
   const { userId } = req as { userId: number };
 
   try {
@@ -84,7 +85,8 @@ export async function updatePost(
       userId,
       postId,
     });
-    return res.status(httpStatus.OK).send(post);
+
+    return res.status(httpStatus.NO_CONTENT).send(post);
   } catch (error) {
     next(error);
   }
@@ -99,11 +101,11 @@ export async function deletePost(
   const { userId } = req as { userId: number };
 
   try {
-    await postService.deletePost({
+    const post = await postService.deletePost({
       postId,
       userId,
     });
-    return res.status(httpStatus.ACCEPTED);
+    return res.status(httpStatus.NO_CONTENT).send(post);
   } catch (error) {
     next(error);
   }
