@@ -48,12 +48,6 @@ describe("GET /posts", () => {
 });
 
 describe("GET /posts/:id", () => {
-  it("should respond with status 400 if no postId is given", async () => {
-    const response = await server.get("/posts/");
-
-    expect(response.status).toBe(httpStatus.BAD_REQUEST);
-  });
-
   it("should respond with status 400 if invalid postId is given", async () => {
     const response = await server.get("/posts/abc");
 
@@ -63,7 +57,7 @@ describe("GET /posts/:id", () => {
   it("should respond with status 404 if post with postId does not exist", async () => {
     const response = await server.get("/posts/999");
 
-    expect(response.status).toBe(httpStatus.BAD_REQUEST);
+    expect(response.status).toBe(httpStatus.NOT_FOUND);
   });
 
   describe("when body is valid", () => {
@@ -81,6 +75,7 @@ describe("GET /posts/:id", () => {
         {
           id: post.id,
           User: {
+            id: expect.any(Number),
             username: expect.any(String),
           },
           country: expect.any(String),
@@ -90,6 +85,7 @@ describe("GET /posts/:id", () => {
               url: expect.any(String),
             },
           ],
+          Comments: [],
         },
       ]);
     });
@@ -176,6 +172,7 @@ describe("GET /posts/user/:id", () => {
         {
           id: expect.any(Number),
           User: {
+            id: expect.any(Number),
             username: expect.any(String),
           },
           country: expect.any(String),
@@ -185,6 +182,7 @@ describe("GET /posts/user/:id", () => {
               url: expect.any(String),
             },
           ],
+          Comments: [],
         },
       ]);
     });
@@ -356,6 +354,7 @@ describe("PUT /posts", () => {
   describe("when body is valid", () => {
     const generateValidBody = () => ({
       description: faker.lorem.sentence(),
+      postId: 0,
     });
 
     it("should respond with status 200 and update post", async () => {
@@ -363,32 +362,23 @@ describe("PUT /posts", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
 
+      const newPost = await createPost(user.id);
+
+      body.postId = newPost.id;
+
       const response = await server
         .put("/posts")
         .set("Authorization", `Bearer ${token}`)
         .send(body);
 
-      expect(response.status).toBe(httpStatus.NO_CONTENT);
-    });
-
-    it("should update post on db", async () => {
-      const body = generateValidBody();
-      const user = await createUser();
-      const token = await generateValidToken(user);
-
-      const newPost = await createPost(user.id);
-
-      const response = await server
-        .put(`/posts/${newPost.id}`)
-        .set("Authorization", `Bearer ${token}`)
-        .send(body);
-
       const post = await prisma.posts.findUnique({
-        where: { id: response.body.id },
+        where: { id: body.postId },
       });
+
+      expect(response.status).toBe(httpStatus.NO_CONTENT);
       expect(post).toEqual(
         expect.objectContaining({
-          description: response.body.description,
+          description: body.description,
         })
       );
     });
