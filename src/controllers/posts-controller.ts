@@ -97,7 +97,7 @@ export async function deletePost(
   res: Response,
   next: NextFunction
 ) {
-  const { postId } = req.body as { postId: number };
+  const  postId  = +req.params.postId;
   const { userId } = req as { userId: number };
 
   try {
@@ -105,6 +105,7 @@ export async function deletePost(
       postId,
       userId,
     });
+
     return res.status(httpStatus.NO_CONTENT).send(post);
   } catch (error) {
     next(error);

@@ -86,7 +86,6 @@ async function updatePost({
 }: UpdatePostParams) {
   const post = await postsRepository.getPostById(postId);
   if (!post) throw notFoundError();
-
   await verifyPostOwnership(postId, userId);
 
   const updatedPost = await postsRepository.updatePost(postId, description);

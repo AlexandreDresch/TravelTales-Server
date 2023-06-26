@@ -9,7 +9,7 @@ loadEnv();
 
 import { handleApplicationErrors } from "@/middlewares";
 
-import { usersRouter, authenticationRouter, postsRouter } from "@/routers";
+import { usersRouter, authenticationRouter, postsRouter, commentsRouter } from "@/routers";
 
 const app = express();
 app
@@ -20,6 +20,7 @@ app
   .use("/users", usersRouter)
   .use("/auth", authenticationRouter)
   .use("/posts", postsRouter)
+  .use("/comment", commentsRouter)
   .use(handleApplicationErrors);
 
 export function init(): Promise<Express> {

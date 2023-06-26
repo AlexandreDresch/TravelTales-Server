@@ -44,3 +44,21 @@ export interface DeletePostParams {
   userId: number;
   postId: number;
 }
+
+export interface CreateCommentParams {
+  userId: number;
+  postId: number;
+  comment: string;
+}
+
+export interface UpdateCommentParams {
+  commentId: number;
+  userId?: number;
+  updatedComment: string;
+}
+
+export interface DeleteCommentParams {
+  commentId: number;
+  userId?: number;
+  postId?: number;
+}
