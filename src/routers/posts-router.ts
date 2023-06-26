@@ -28,6 +28,6 @@ postsRouter
   .get("/user/:userId", validateParams(getPostByUserIdSchema), getPostsByUserId)
   .post("/", validateBody(createPostSchema), postsPost)
   .put("/", validateBody(updatePostSchema), updatePost)
-  .delete("/", validateBody(deletePostSchema), deletePost);
+  .delete("/:postId", validateParams(deletePostSchema), deletePost);
 
 export { postsRouter };

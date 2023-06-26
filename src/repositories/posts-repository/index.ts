@@ -31,8 +31,15 @@ async function getPosts() {
       User: {
         select: {
           username: true,
+          id: true,
         },
       },
+      Comments: {
+        select: {
+          comment: true,
+          user: { select: { username: true } }
+        }
+      }
     },
   });
 }
@@ -79,7 +86,11 @@ async function getPostById(postId: number) {
       id: true,
       description: true,
       country: true,
-      pictures: true,
+      pictures: {
+        select: {
+          url: true,
+        },
+      },
       User: {
         select: {
           username: true,
